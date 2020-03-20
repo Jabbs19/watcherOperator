@@ -138,7 +138,7 @@ class Controller(threading.Thread):
     def _reconcile_state(self, object_key):
         """Make changes to go from current state to desired state and updates
            object status."""
-        logger.info("Reconcile state: {:s}".format(object_key))
+        logger.info("Event Found: {:s}".format(object_key))
         eventType, eventObject, deployOrConfigName, deployNamespace, additionalVars = object_key.split("~~")
 
         deployAPI = client.AppsV1Api(self.authconfiguration)
@@ -147,106 +147,66 @@ class Controller(threading.Thread):
         watcherConfigExist = check_for_custom_resource(customAPI, self.customGroup, self.customVersion, self.customPlural, deployOrConfigName)
 
         if watcherConfigExist == True:
-            logger.info("Watcher Application Configuration Found [ " + deployOrConfigName +"]")
+            logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, 
+                    "WatcherConfig found."))
 
             #Get CR (the "Watcher Config")            
             cr = get_custom_resource(customAPI, self.customGroup, self.customVersion, self.customPlural, deployOrConfigName)
             watcherApplicationConfig = watcherApplication(apiInstance=customAPI, crObject=cr, operatorConfig=self.operatorConfig)
-            logger.info("Watcher Application Configuration Loaded [ " + deployOrConfigName +"]")
-
+            logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, 
+                    "WatcherConfig loaded."))
             
             if watcherApplicationConfig.check_marked_for_delete():
-                logger.info("Watcher Application Configuration Marked for Deletion [ " + deployOrConfigName +"]")
+                logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, 
+                    "WatcherConfig marked for deletion."))                
+                
                 delete_deployment(deployAPI, watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.deployNamespace)
-                logger.info("Watcher Application Deployment Deleted [ " + deployOrConfigName +"]")
+                logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, 
+                    "Watcher Deployment deleted.")) 
+                
                 watcherApplicationConfig.remove_finalizer()
-                logger.info("Watcher Application Configuration Deleted [ " + deployOrConfigName +"]")
+                logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, 
+                    "WatcherConfig deleted.")) 
 
             else:
                 if eventType in ['ADDED']:
-                    logger.info("ADDED Event Found [deployOrConfigName: " + deployOrConfigName +"]")
-
+                    logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][EventType: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, eventType,
+                        "Event found.")) 
                     if check_for_deployment(deployAPI, watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.deployNamespace):
-                        dep = create_deployment_object(watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.fullJSONSpec)
+                        dep = watcherApplicationConfig.get_deployment_object()
                         update_deployment(deployAPI, dep, watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.deployNamespace)
                         #watcherApplicationConfig.updateStatus(deployOrConfigName, 'Added')
 
                     else:
-                        dep = create_deployment_object(watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.fullJSONSpec)
+                        dep = watcherApplicationConfig.get_deployment_object()
                         create_deployment(deployAPI, dep, watcherApplicationConfig.deployNamespace)
                     #self.createDeployment()
                 elif eventType in ['MODIFIED']:
-                    logger.info("MODIFIED Event Found [deployOrConfigName: " + deployOrConfigName +"]")
+                    logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][EventType: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, eventType,
+                        "Event found.")) 
                     if check_for_deployment(deployAPI, watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.deployNamespace):
-                        dep = create_deployment_object(watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.fullJSONSpec)
+                        dep = watcherApplicationConfig.get_deployment_object()
                         update_deployment(deployAPI, dep, watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.deployNamespace)
                         #watcherApplicationConfig.updateStatus(deployOrConfigName, 'Added and Modified')
 
                     else:
-                        dep = create_deployment_object(watcherApplicationConfig.watcherApplicationName, watcherApplicationConfig.fullJSONSpec)
+                        dep = watcherApplicationConfig.get_deployment_object()
                         create_deployment(deployAPI, dep, watcherApplicationConfig.deployNamespace)
                 elif eventType in ['DELETED']:
                     #Since only sending "delete" events for custom resource, this is truly once its been deleted. 
                     #Can't use for deleting deployment.
-
-                    logger.info("DELETED Event Found [deployOrConfigName: " + deployOrConfigName +"]")
-
+                    logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][EventType: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, eventType,
+                        "Event found.")) 
                     #watcherApplicationConfig.updateStatus(deployOrConfigName, 'Deleted')
                 else:
-                    logger.error("Unknown Event Found [eventType: " + eventType + "] [deployOrConfigName: " + deployOrConfigName +"]")
+                    logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][EventType: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, eventType,
+                        "Event found, but did not match any filters.")) 
+
         else:
-            logger.info("Watcher Application Configuration  Found: " + deployOrConfigName)
+            logger.info("[ObjectType: %s][ObjectName: %s][Namespace: %s][EventType: %s][Message: %s]" % (eventObject, deployOrConfigName, deployNamespace, eventType,
+                        "No WatcherConfig found."))  
 
-      
 
-    def _update_status(self, immortalcontainer, pod):
-        """Updates an ImmortalContainer status"""
-        new_status = self._calculate_status(immortalcontainer, pod)
-        try:
-            self.customAPI.patch_namespaced_custom_object_status(
-                self.customGroup, self.customVersion,
-                immortalcontainer['metadata']['namespace'],
-                self.customPlural, immortalcontainer['metadata']['name'],
-                new_status
-            )
-        except Exception as e:
-            logger.error("Error updating status for ImmortalContainer {:s}/{:s}".format(
-                immortalcontainer['metadata']['namespace'], immortalcontainer['metadata']['name']))
+     
 
-    def _calculate_status(self, immortalcontainer, pod):
-        """Calculates what the status of an ImmortalContainer should be """
-        new_status = copy.deepcopy(immortalcontainer)
-        if 'status' in immortalcontainer and 'startTimes' in immortalcontainer['status']:
-            startTimes = immortalcontainer['status']['startTimes']+1
-        else:
-            startTimes = 1
-        new_status['status'] = dict(
-            currentPod=pod.metadata.name,
-            startTimes=startTimes
-        )
-        return new_status
-
-    def _new_pod(self, immortalcontainer):
-        """Returns the pod definition to create the pod for an ImmortalContainer"""
-        labels = dict(controller=immortalcontainer['metadata']['name'])
-        return models.V1Pod(
-            metadata=models.V1ObjectMeta(
-                name=immortalcontainer['metadata']['name']+"-immortalpod",
-                labels=labels,
-                namespace=immortalcontainer['metadata']['namespace'],
-                owner_references=[models.V1OwnerReference(
-                    api_version=self.customGroup+"/"+self.customVersion,
-                    controller=True,
-                    kind=self.customKind,
-                    name=immortalcontainer['metadata']['name'],
-                    uid=immortalcontainer['metadata']['uid']
-                )]),
-            spec=models.V1PodSpec(
-                containers=[
-                    models.V1Container(
-                        name="acontainer",
-                        image=immortalcontainer['spec']['image']
-                    )
-                ]
-            )
-        )
+   

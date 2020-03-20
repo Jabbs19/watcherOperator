@@ -41,15 +41,16 @@ class watcherApplication():
         self.eventTypeFilter = crObject['spec']['eventTypeFilter']
         self.fullJSONSpec = crObject['spec']
 
-    def update_status(self, newStatus):
-        currentConfig = get_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.watcherApplicationName)
+    #not working yet.  have to figure out how to "inject" a status into existing body.
+    #def update_status(self, newStatus):
+        #currentConfig = get_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.watcherApplicationName)
         #Check by printing this.  
         #Overwrite the "status"
         #currentConfig.metadata.status = newStatus
 
         #Patch the actual resource.
-        api_response = patch_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.customKind, self.watcherApplicationName, currentConfig)
-        return api_response
+        #api_response = patch_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.customKind, self.watcherApplicationName, currentConfig)
+        #return api_response
     
     def check_marked_for_delete(self):
         try:
@@ -73,107 +74,38 @@ class watcherApplication():
     
         api_response = patch_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.customKind, self.watcherApplicationName, noFinalizerBody)
  
-    # def removeFinalizer(self, operatorConfigObject, apiInstance, watcherConfigName):
-    #         body = ""
-    #         api_response = apiInstance.patch_cluster_custom_object(operatorConfigObject.customGroup, 
-    #                                                             operatorConfigObject.customVersion, 
-    #                                                             operatorConfigObject.customPlural, 
-    #                                                             watcherConfigName,
-    #                                                             body
     
-        
-    #     self.operatorConfigObject = operatorConfigObject
-    #     self.apiInstance = apiInstance
-    #     try:
-    #         api_response = self.apiInstance.get_cluster_custom_object(self.operatorConfigObject.customGroup, 
-    #                                                             self.operatorConfigObject.customVersion, 
-    #                                                             self.operatorConfigObject.customPlural,
-    #                                                             watcherConfigName)
-    #         self.watcherApplicationName = watcherConfigName
-    #         self.deployNamespace = api_response['spec']['deployNamespace']
-    #         self.watchNamespace = api_response['spec']['watchNamespace']
-    #         self.k8sApiVersion = api_response['spec']['k8sApiVersion']
-    #         self.k8sApiResourceName = api_response['spec']['k8sApiResourceName']
-    #         self.annotationFilterBoolean = api_response['spec']['annotationFilterBoolean']
-    #         self.annotationFilterString = api_response['spec']['annotationFilterString']
-    #         self.eventTypeFilter = api_response['spec']['eventTypeFilter']
-    #         self.fullJSONSpec = api_response['spec']
-            
-    #     except ApiException as e:
-    #         self.watcherApplicationName = None
-    #         self.deployNamespace = None
-    #         self.watchNamespace = None
-    #         self.k8sApiVersion = None
-    #         self.k8sApiResourceName = None
-    #         self.annotationFilterBoolean = None
-    #         self.annotationFilterString = None
-    #         self.eventTypeFilter = None
-    #         self.fullJSONSpec = None
-    #         self.status = None
-    #         print("No watcher config object found.")
+    def get_deployment_object(self):
 
-   
+        # Configureate Pod template container
+        container = client.V1Container(
+            name="watcher",
+            image="openshift/hello-openshift",
+            ports=[client.V1ContainerPort(container_port=8080)],
+            env=[client.V1EnvVar(name='ANNOTATION_FILTER_BOOLEAN',value=self.annotationFilterBoolean),
+                client.V1EnvVar(name='ANNOTATION_FILTER_STRING',value=self.annotationFilterString),
+                client.V1EnvVar(name='WATCH_NAMESPACE',value=self.watchNamespace),
+                client.V1EnvVar(name='API_VERSION',value=self.k8sApiVersion),
+                client.V1EnvVar(name='API_RESOURCE_NAME',value=self.k8sApiResourceName),
+                client.V1EnvVar(name='PATH_TO_CA_PEM',value='/ca/route'),   #Figure out later.
+                client.V1EnvVar(name='JWT_TOKEN',value='141819048109481094')    #Figure out later.
+                ]
+        )
+        # Create and configurate a spec section
+        template = client.V1PodTemplateSpec(
+            metadata=client.V1ObjectMeta(labels={"app": self.watcherApplicationName}),
+            spec=client.V1PodSpec(containers=[container]))
+        # Create the specification of deployment
+        spec = client.V1DeploymentSpec(
+            replicas=1,
+            template=template,
+            selector={'matchLabels': {'app':  self.watcherAppName}})
+        # Instantiate the deployment object
+        deployment = client.V1Deployment(
+            api_version="apps/v1",
+            kind="Deployment",
+            metadata=client.V1ObjectMeta(name= self.watcherAppName),
+            spec=spec)
+        return deployment
+
     
-    # def updateStatus(self, watcherConfigName, status):
-    #     self.status = status
-
-    # def checkForApplicationConfig(self, operatorConfigObject, apiInstance, watcherConfigName):
-    #     try:
-    #         api_response = self.apiInstance.get_cluster_custom_object(operatorConfigObject.customGroup, 
-    #                                                             operatorConfigObject.customVersion, 
-    #                                                             operatorConfigObject.customPlural, 
-    #                                                             watcherConfigName)
-    #         #print(api_response)                                                                
-    #         return True
-    #     except:
-    #         return False  
-
-
-            #print("Exception when calling CustomObjectsApi->get_cluster_custom_object: %s\n" % e)  
-
-    # def checkForApplicationConfig(self, watcherConfigName):
-    #     try:
-    #         api_response = self.apiInstance.get_cluster_custom_object(operatorConfigObject.customGroup, 
-    #                                                             operatorConfigObject.customVersion, 
-    #                                                             operatorConfigObject.customPlural, 
-    #                                                             watcherConfigName)
-    #         print(api_response)                                                                
-    #         return True
-    #     except:
-    #         return False               
-
-    # def _getConfiguration(self):
-    #     # create an instance of the API class
-    #     configuration = client.Configuration()
-    #     configuration.api_key_prefix['select_header_accept'] = 'Yes'
-
-    #     #configuration.ssl_ca_cert = os.getenv('PATH_TO_CA_PEM')
-    #     #configuration.api_key_prefix['authorization'] = 'Bearer'
-    #     #configuration.api_key["authorization"] = os.getenv('JWT_TOKEN')
-    #     return configuration
-
-    # def _getWatcherConfigObject(self, wcName):
-    #     # create an instance of the API class
-    #     configuration = client.Configuration()
-    #     #configuration.ssl_ca_cert = os.getenv('PATH_TO_CA_PEM')
-    #     #configuration.api_key_prefix['authorization'] = 'Bearer'
-    #     #configuration.api_key["authorization"] = os.getenv('JWT_TOKEN')
-
-    # # create an instance of the API class
-    #     apiInstance = client.CustomObjectsApi(client.ApiClient(configuration))
-        
-    #     try:
-    #         api_response = apiInstance.get_cluster_custom_object(self.customGroup, self.customVersion, self.customPlural, wcName)
-    #         return(api_response)
-    #     except ApiException as e:
-    #         print("Exception when calling CustomObjectsApi->get_cluster_custom_object: %s\n" % e)     
-
-    # def _getWatcherConfigObject(self, wcName):
-   
-    #     apiInstance = client.CustomObjectsApi(self.authconfiguration)
-        
-    #     try:
-    #         api_response = apiInstance.get_cluster_custom_object(self.customGroup, self.customVersion, self.customPlural, wcName)
-    #         return(api_response)
-    #     except ApiException as e:
-    #         print("Exception when calling CustomObjectsApi->get_cluster_custom_object: %s\n" % e)                 

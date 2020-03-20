@@ -7,7 +7,10 @@ def check_for_custom_resource(apiInstance, customGroup, customVersion, customPlu
 
     try:
         api_response = apiInstance.get_cluster_custom_object(customGroup, customVersion, customPlural, crName)
-        return True                                                      
+        if api_response['metadata']['name'] == crName:
+            return True    
+        else:
+            return False                                                 
     except:
         return False
         print("Error with this")
