@@ -83,9 +83,7 @@ def delete_deployment(apiInstance, deploymentName, deploymentNamespace):
 def check_for_deployment(apiInstance, deploymentName, deploymentNamespace):
     try:
         api_response = apiInstance.read_namespaced_deployment(name=deploymentName, namespace=deploymentNamespace)
-        logger.info("Deployment Found [" + deploymentName +"]")
         return True
     except ApiException as e:
-        logger.info("Deployment not found. [Deployment: " + deploymentName + "][CHECK] Error: %s\n" % e)
         return False
 
