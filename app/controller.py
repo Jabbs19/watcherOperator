@@ -144,9 +144,9 @@ class Controller(threading.Thread):
         deployAPI = client.AppsV1Api(self.authconfiguration)
         customAPI = client.CustomObjectsApi(self.authconfiguration)
        
-        booleanDoesWatcherConfigExist = check_for_custom_resource(customAPI, self.customGroup, self.customVersion, self.customPlural, deployOrConfigName)
+        watcherConfigExist = check_for_custom_resource(customAPI, self.customGroup, self.customVersion, self.customPlural, deployOrConfigName)
 
-        if booleanDoesWatcherConfigExist:
+        if watcherConfigExist == True:
             logger.info("Watcher Application Configuration Found [ " + deployOrConfigName +"]")
 
             #Get CR (the "Watcher Config")            

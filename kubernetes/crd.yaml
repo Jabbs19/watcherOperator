@@ -43,14 +43,3 @@ spec:
     shortNames:
     - wc
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: watcherconfig-crd
-rules:
-- apiGroups:
-  - jabbs19.com
-  resources:
-  - watcherconfig
-  - watcherconfig/finalizers
-  verbs: [ get, list, create, update, delete, deletecollection, watch ]

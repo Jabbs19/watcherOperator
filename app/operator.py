@@ -15,7 +15,7 @@ class watcherOperatorConfig():
         self.customKind = "WatcherConfig"
         self.apiVersion = "CoreV1Api"
         self.customEventFilter =  {'eventTypesList': ['ADDED','MODIFIED','DELETED']}
-        self.deployEventFilter = {'eventTypesList': ['zz']}
+        self.deployEventFilter = {'eventTypesList': ['MODIFIED']}
         self.finalizer = ['watcher.delete.finalizer']
 
     #     {'eventTypesList': ['ADDED','MODIFIED']}

@@ -20,11 +20,23 @@ logger = logging.getLogger()
 def main():
 
     #Cluster "client" configuration
-    cc = clientconfig()
+    try:
+        jwt = os.getenv('JWT_TOKEN')
+        print("JWT: " + jwt)
+    except:
+        file = open("/var/run/secrets/kubernetes.io/serviceaccount/token")
+        jwt = file.read()
+        print("JWT: " + jwt)
+
+    cc = clientconfig(jwtTOKEN=jwt)
    
     #Create API Instances for Deployment "Watcher" and the WatcherConfig "Watcher"
-    deployAPI = client.AppsV1Api(cc.authConfiguration)
-    customAPI = client.CustomObjectsApi(cc.authConfiguration)
+    #deployAPI = client.AppsV1Api(cc.authConfiguration)
+    #customAPI = client.CustomObjectsApi(cc.authConfiguration)
+   
+    customAPI = client.CustomObjectsApi(client.ApiClient(cc.authConfiguration))
+    deployAPI = client.AppsV1Api(client.ApiClient(cc.authConfiguration))
+
 
 
     #WatcherOperatorConfig "Master" Configuration (Could be configmap, secret, helm values, etc.)
@@ -44,7 +56,7 @@ def main():
                                             watchOpConfig.customVersion, 
                                             watchOpConfig.customPlural)
 
-    controller = Controller(cc.authConfiguration, deployment_watcher, config_watcher, deployAPI, customAPI,
+    controller = Controller(client.ApiClient(cc.authConfiguration), deployment_watcher, config_watcher, deployAPI, customAPI,
                             watchOpConfig,
                             watchOpConfig.customGroup,
                             watchOpConfig.customVersion,

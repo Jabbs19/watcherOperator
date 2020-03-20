@@ -57,7 +57,7 @@ def create_deployment(apiInstance, deploymentBody, deploymentNamespace):
         api_response = apiInstance.create_namespaced_deployment(body=deploymentBody,namespace=deploymentNamespace)
         logger.info("Deployment Created [" + api_response.metadata.name +"]")
     except ApiException as e:
-        logger.error("Deployment not created. [Deployment: " + api_response.metadata.name + "][CREATE] Error: " + e)
+        logger.error("Deployment not created. [Deployment: " + api_response.metadata.name + "][CREATE] Error: %s\n" % e)
 
 
 def update_deployment(apiInstance, deploymentBody, deploymentName, deploymentNamespace):
@@ -66,7 +66,7 @@ def update_deployment(apiInstance, deploymentBody, deploymentName, deploymentNam
         api_response = apiInstance.patch_namespaced_deployment(name=deploymentName,namespace=deploymentNamespace,body=deploymentBody)
         logger.info("Deployment Patched [" + deploymentName +"]")
     except ApiException as e:
-        logger.error("Deployment not patched. [Deployment: " + deploymentName + "][PATCH] Error: " + e)
+        logger.error("Deployment not patched. [Deployment: " + deploymentName + "][PATCH] Error: %s\n" % e)
 
 
 def delete_deployment(apiInstance, deploymentName, deploymentNamespace):
@@ -75,7 +75,7 @@ def delete_deployment(apiInstance, deploymentName, deploymentNamespace):
         api_response = apiInstance.delete_namespaced_deployment(name=deploymentName, namespace=deploymentNamespace)
         logger.info("Deployment Deleted [" + deploymentName +"]")
     except ApiException as e:
-        logger.error("Deployment not patched. [Deployment: " + deploymentName + "][DELETE] Error: " + e)
+        logger.error("Deployment not patched. [Deployment: " + deploymentName + "][DELETE] Error: %s\n" % e)
 
 
 def check_for_deployment(apiInstance, deploymentName, deploymentNamespace):
@@ -84,6 +84,6 @@ def check_for_deployment(apiInstance, deploymentName, deploymentNamespace):
         logger.info("Deployment Found [" + deploymentName +"]")
         return True
     except ApiException as e:
-        logger.info("Deployment not found. [Deployment: " + deploymentName + "][CHECK] Error: " + e)
+        logger.info("Deployment not found. [Deployment: " + deploymentName + "][CHECK] Error: %s\n" % e)
         return False
 

@@ -10,6 +10,7 @@ def check_for_custom_resource(apiInstance, customGroup, customVersion, customPlu
         return True                                                      
     except:
         return False
+        print("Error with this")
 
 def get_custom_resource(apiInstance, customGroup, customVersion, customPlural, crName):
 

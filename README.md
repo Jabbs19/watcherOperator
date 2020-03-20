@@ -84,3 +84,4 @@ Then run `kubectl get pods` and check the pod is created. If you kill the pod it
 To remove the operator, CDR and RBAC use `make undeploy`
 
 Pods created by the operator will not be deleted, but will not be restarted if deleted later.
+
