@@ -3,8 +3,12 @@ USER 0
 
 # Define Env Variables
 ENV TEST="working1"
+
 # setup resource directories
 RUN mkdir -p /app /config
+
+COPY requirements.txt /
+RUN pip install -r requirements.txt
 
 # copy resources
 COPY . /
@@ -15,7 +19,7 @@ COPY . /
 WORKDIR /
 
 # install
-RUN pip install -r requirements.txt
+
 
 # setup kubeconfig parts
 #ARG kube_config_location=/config/kube.config

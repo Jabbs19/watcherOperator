@@ -96,7 +96,14 @@ class watcherApplication():
         # Create and configurate a spec section
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(labels={"app": self.watcherApplicationName}),
-            spec=client.V1PodSpec(containers=[container]))
+            spec=client.V1PodSpec(serviceAccountName="watcher-application",
+                                serviceAccount="watcher-application",
+                                containers=[container]))
+
+# # Create and configurate a spec section
+#         template = client.V1PodTemplateSpec(
+#             metadata=client.V1ObjectMeta(labels={"app": self.watcherApplicationName}),
+#             spec=client.V1PodSpec(containers=[container]))            
         # Create the specification of deployment
         spec = client.V1DeploymentSpec(
             replicas=1,
