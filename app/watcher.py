@@ -71,9 +71,11 @@ class watcherApplication():
             "finalizers": []
                     }
         }
-    
-        api_response = patch_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.customKind, self.watcherApplicationName, noFinalizerBody)
- 
+        try:
+            api_response = patch_custom_resource(self.apiInstance, self.customGroup, self.customVersion, self.customPlural, self.customKind, self.watcherApplicationName, noFinalizerBody)
+        except ApiException as e:
+            logger.error("Finalizer Not removed. [Deployment: " + deploymentName + "] Error: %s\n" % e)
+
     
     def get_deployment_object(self):
 
