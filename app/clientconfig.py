@@ -25,8 +25,8 @@ class clientconfig():
         authConfiguration = client.Configuration()
 
          # Logging Settings
-        authConfiguration.logger = {}
-        authConfiguration.logger["package_logger"] = logging.getLogger("client")
+        #authConfiguration.logger = {}
+        #authConfiguration.logger["package_logger"] = logging.getLogger("client")
 
         #authConfiguration = None
         #authConfiguration.verify_ssl = False

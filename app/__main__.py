@@ -20,16 +20,20 @@ logger = logging.getLogger()
 def main():
 
     #Cluster "client" configuration
-    try:
-        jwt = os.getenv('JWT_TOKEN')
-        print("JWT: " + jwt)
-    except:
-        file = open("/var/run/secrets/kubernetes.io/serviceaccount/token")
-        jwt = file.read()
-        print("JWT: " + jwt)
-
+    if 1 == 2:
+        try:
+            jwt = os.getenv('JWT_TOKEN')
+            print("JWT: " + jwt)
+        except:
+            file = open("/var/run/secrets/kubernetes.io/serviceaccount/token")
+            jwt = file.read()
+            print("JWT: " + jwt)
+    else:
+        jwt="blahblah"
+    
     cc = clientconfig(jwtTOKEN=jwt)
    
+        
     #Create API Instances for Deployment "Watcher" and the WatcherConfig "Watcher"
     #deployAPI = client.AppsV1Api(cc.authConfiguration)
     #customAPI = client.CustomObjectsApi(cc.authConfiguration)
