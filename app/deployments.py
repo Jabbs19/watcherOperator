@@ -72,7 +72,9 @@ def update_deployment(apiInstance, deploymentBody, deploymentName, deploymentNam
 def delete_deployment(apiInstance, deploymentName, deploymentNamespace):
     # Delete deployment
     try:
-        api_response = apiInstance.delete_namespaced_deployment(name=deploymentName, namespace=deploymentNamespace)
+        api_response = apiInstance.delete_namespaced_deployment(name=deploymentName, namespace=deploymentNamespace, body=client.V1DeleteOptions(
+            propagation_policy='Foreground',
+            grace_period_seconds=5))
         logger.info("Deployment Deleted [" + deploymentName +"]")
     except ApiException as e:
         logger.error("Deployment not patched. [Deployment: " + deploymentName + "][DELETE] Error: %s\n" % e)
