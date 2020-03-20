@@ -99,12 +99,12 @@ class watcherApplication():
         spec = client.V1DeploymentSpec(
             replicas=1,
             template=template,
-            selector={'matchLabels': {'app':  self.watcherAppName}})
+            selector={'matchLabels': {'app':  self.watcherApplicationName}})
         # Instantiate the deployment object
         deployment = client.V1Deployment(
             api_version="apps/v1",
             kind="Deployment",
-            metadata=client.V1ObjectMeta(name= self.watcherAppName),
+            metadata=client.V1ObjectMeta(name= self.watcherApplicationName),
             spec=spec)
         return deployment
 
