@@ -96,8 +96,8 @@ class watcherApplication():
         # Create and configurate a spec section
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(labels={"app": self.watcherApplicationName}),
-            spec=client.V1PodSpec(serviceAccountName="watcher-application",
-                                serviceAccount="watcher-application",
+            spec=client.V1PodSpec(service_account="watcher-application",
+                                service_account_name="watcher-application",
                                 containers=[container]))
 
 # # Create and configurate a spec section
